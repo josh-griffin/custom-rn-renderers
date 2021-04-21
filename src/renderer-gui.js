@@ -12,40 +12,11 @@ const tracerWrapper = (hostConfig) =>
     };
   }, {});
 
-function camel2Dash(str) {
-  if (str === "") {
-    return "";
-  }
-
-  str = str[0].toLowerCase() + str.substr(1);
-
-  return str.replace(/([A-Z])/g, function ($1) {
-    return "-" + $1.toLowerCase();
-  });
-}
-
-function convertCamelCasetoInlineStyle(style) {
-  const transformedStyles = {};
-  if (style) {
-    Object.keys(style).forEach((key) => {
-      const dashedKey = camel2Dash(key);
-      transformedStyles[dashedKey] = style[key];
-      if (key === "height") {
-        transformedStyles[dashedKey] = style[key] + "px";
-      }
-    });
-  }
-  const styleString = Object.keys(transformedStyles).map((key) => {
-    return `${key}:${transformedStyles[key]};`;
-  });
-  return styleString.join("");
-}
-
 const rootHostContext = {};
 const childHostContext = {};
 
 const hostConfig = {
-  clearContainer: () => console.log("clear"),
+  clearContainer: () => console.log("clear the container"),
   now: Date.now,
   getRootHostContext: () => {
     return rootHostContext;
@@ -55,7 +26,7 @@ const hostConfig = {
   getChildHostContext: () => {
     return childHostContext;
   },
-  shouldSetTextContent: (type, props) => {
+  shouldSetTextContent: () => {
     return false;
   },
   createInstance: (
@@ -118,19 +89,18 @@ const hostConfig = {
   commitTextUpdate(textInstance, oldText, newText) {},
   removeChild(parentInstance, child) {},
 };
-const ReactReconcilerInst = ReactReconciler(tracerWrapper(hostConfig));
-export default {
+const ReactReconcilerInstance = ReactReconciler(tracerWrapper(hostConfig));
+
+const GuiRenderer = {
   render: (reactElement, guiWindow, callback) => {
-    // Create a root Container if it doesnt exist
     if (!guiWindow._rootContainer) {
-      guiWindow._rootContainer = ReactReconcilerInst.createContainer(
+      guiWindow._rootContainer = ReactReconcilerInstance.createContainer(
         guiWindow,
         false
       );
     }
 
-    // update the root Container
-    return ReactReconcilerInst.updateContainer(
+    return ReactReconcilerInstance.updateContainer(
       reactElement,
       guiWindow._rootContainer,
       null,
@@ -138,3 +108,5 @@ export default {
     );
   },
 };
+
+export default GuiRenderer;
